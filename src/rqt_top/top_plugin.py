@@ -37,6 +37,7 @@ from rqt_top.node_info import NodeInfo
 import re
 from threading import RLock
 import textwrap
+import numpy as np
 
 
 class TopWidgetItem(QTreeWidgetItem):
@@ -121,6 +122,7 @@ class Top(Plugin):
         self._kill_button = QPushButton('Kill Node')
         self._layout.addWidget(self._kill_button)
         self._kill_button.clicked.connect(self._kill_node)
+        self.computation = []
 
         # Update twice since the first cpu% lookup will always return 0
         self.update_table()
@@ -168,11 +170,16 @@ class Top(Plugin):
     def update_table(self):
         self._table_widget.clear()
         infos = self._node_info.get_all_node_fields(self.NODE_FIELDS)
+        print("-------------------------------------------------------------------------")
         for nx, info in enumerate(infos):
             self.update_one_item(nx, info)
+            if info['node_name']== "/control3":
+                print(str(info['node_name']) + " -- "+ str(info['cpu_percent']))
+                self.computation.append(info['cpu_percent'])
 
     def shutdown_plugin(self):
         self._update_timer.stop()
+        np.save("control_3.npy",self.computation)
 
     def save_settings(self, plugin_settings, instance_settings):
         instance_settings.set_value('filter_text', self._filter_box.text())
@@ -190,3 +197,4 @@ class Top(Plugin):
     # def trigger_configuration(self):
         # Comment in to signal that the plugin has a way to configure it
         # Usually used to open a configuration dialog
+
